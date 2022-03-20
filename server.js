@@ -58,6 +58,7 @@ function start() {
                 break;
 
             case "Add Department":
+                addDepartment();
                 break;
 
             default:
@@ -315,4 +316,26 @@ const viewDepartments = () => {
         })
         .catch(console.log)
         .then(() => start());
+}
+
+const addDepartment = () => {
+    const departmentQuestion = [
+        {
+            type: "input",
+            message: "What is the name of the department?",
+            name: "name"
+        }
+    ]
+
+    inquirer
+        .prompt(departmentQuestion)
+        .then((data) => {
+            const sql = `
+            INSERT INTO department (name)
+            VALUES (?)
+            `;
+
+            db.promise().query(sql, data.name)
+                .then(() => start());
+        });
 }
