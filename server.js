@@ -42,6 +42,7 @@ function start() {
                 break;
 
             case "Update Employee Role":
+                updateRole();
                 break;
 
             case "View All Roles":
@@ -158,13 +159,71 @@ const addEmployees = () => {
                             `;
 
                             db.promise().query(sql)
-                                .then(([rows, fields]) => {
-                                    console.log(`Added ${data.first} ${data.last} to the database.`);
-                                })
-                                .catch(console.log)
                                 .then(() => start());
                         });
                 });
         });
 }
 
+const updateRole = () => {
+    const employees = {}
+
+    const sqlEmployee = `
+        SELECT id, CONCAT (employee.first_name, " ", employee.last_name) AS name
+        FROM employee
+        `;
+    db.promise().query(sqlEmployee)
+        .then(([rows, fields]) => {
+            for (i in rows) {
+                employees[rows[i].name] = rows[i].id;
+            }
+        })
+        .catch(console.log)
+        .then(() => {
+            const roles = {}
+
+            const sqlRoles = `
+                SELECT id, title
+                FROM role
+                `;
+
+            db.promise().query(sqlRoles)
+                .then(([rows, fields]) => {
+                    for (i in rows) {
+                        roles[rows[i].title] = rows[i].id;
+                    }
+                })
+                .catch(console.log)
+                .then(() => {
+                    const updateEmployeeQuestion = [
+                        {
+                            type: "list",
+                            message: "Which employee's role do you want to update?",
+                            name: "employee",
+                            choices: Object.keys(employees)
+                        },
+                        {
+                            type: "list",
+                            message: "Which role do you wnat to assign the selected employee?",
+                            name: "role",
+                            choices: Object.keys(roles)
+                        }
+                    ]
+
+                    inquirer
+                        .prompt(updateEmployeeQuestion)
+                        .then((data) => {
+                            const employeeId = employees[data.employee];
+                            const roleId = roles[data.role];
+                            const sql = `
+                                UPDATE employee
+                                SET role_id = ${roleId}
+                                WHERE id = ${employeeId}
+                                `;
+
+                            db.promise().query(sql)
+                                .then(() => start());
+                        });
+                })
+        });
+}
