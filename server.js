@@ -18,40 +18,41 @@ db.connect(err => {
 
 function start() {
     inquirer.prompt({
-        name: "action",
+        name: "option",
         type: "list",
         message: "What would you like to do?",
         choices: [
             "View All Employees",
             "Add Employee",
-            "Update Employee role",
+            "Update Employee Role",
             "View All Roles",
             "Add Role",
             "View All Departments",
             "Add Department",
-            "Exit"
+            "Quit"
         ]
     }).then((answer) => {
-        switch (answer.action) {
-            case "View all employees":
+        switch (answer.option) {
+            case "View All Employees":
+                viewEmployees();
                 break;
 
-            case "Add an employee":
+            case "Add Employee":
                 break;
 
-            case "Update employee role":
+            case "Update Employee Role":
                 break;
 
-            case "View all roles":
+            case "View All Roles":
                 break;
 
-            case "Add a role":
+            case "Add Role":
                 break;
 
-            case "View all departments":
+            case "View All Departments":
                 break;
 
-            case "Add a department":
+            case "Add Department":
                 break;
 
             case "Exit":
@@ -59,4 +60,32 @@ function start() {
                 break;
         }
     });
+}
+
+const viewEmployees = () => {
+    const sql = `
+        SELECT 
+            employee.id, 
+            employee.first_name, 
+            employee.last_name, 
+            role.title,
+            department.name AS department,
+            role.salary,
+            CONCAT (manager.first_name, " ", manager.last_name) AS manager
+        FROM employee 
+        JOIN role 
+        ON employee.role_id = role.id
+        JOIN department 
+        ON role.department_id = department.id
+        LEFT JOIN employee AS manager
+        ON employee.manager_id = manager.id
+        ORDER BY employee.id
+        `;
+
+    db.promise().query(sql)
+        .then(([rows, fields]) => {
+            console.table(rows);
+        })
+        .catch(console.log)
+        .then(() => start());
 }
