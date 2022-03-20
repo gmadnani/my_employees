@@ -50,6 +50,7 @@ function start() {
                 break;
 
             case "Add Role":
+                addRole();
                 break;
 
             case "View All Departments":
@@ -248,4 +249,54 @@ const viewRole = () => {
         })
         .catch(console.log)
         .then(() => start());
+}
+
+const addRole = () => {
+    const departments = {}
+
+    const sql = `
+    SELECT id, name
+    FROM department
+    `;
+
+    db.promise().query(sql)
+        .then(([rows, fields]) => {
+            for (i in rows) {
+                departments[rows[i].name] = rows[i].id;
+            }
+        })
+        .catch(console.log)
+        .then(() => {
+            const roleQuestions = [
+                {
+                    type: "input",
+                    message: "What is the name of the role?",
+                    name: "title"
+                },
+                {
+                    type: "number",
+                    message: "What is the salary of the role?",
+                    name: "salary"
+                },
+                {
+                    type: "list",
+                    message: "Which department does the role belong to?",
+                    name: "department",
+                    choices: Object.keys(departments)
+                }
+            ]
+
+            inquirer
+                .prompt(roleQuestions)
+                .then((data) => {
+                    const departmentId = departments[data.department];
+                    const sql = `
+                    INSERT INTO role (title, salary, department_id)
+                    VALUES ('${data.title}', '${data.salary}', '${departmentId}')
+                    `;
+
+                    db.promise().query(sql)
+                        .then(() => start());
+                });
+        });
 }
