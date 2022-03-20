@@ -46,7 +46,7 @@ function start() {
                 break;
 
             case "View All Roles":
-                viewRole();
+                viewRoles();
                 break;
 
             case "Add Role":
@@ -54,6 +54,7 @@ function start() {
                 break;
 
             case "View All Departments":
+                viewDepartments();
                 break;
 
             case "Add Department":
@@ -230,7 +231,7 @@ const updateRole = () => {
         });
 }
 
-const viewRole = () => {
+const viewRoles = () => {
     const sql = `
         SELECT 
             role.id,
@@ -299,4 +300,19 @@ const addRole = () => {
                         .then(() => start());
                 });
         });
+}
+
+const viewDepartments = () => {
+    const sql = `
+        SELECT id, name
+        FROM department
+        ORDER BY id
+        `;
+
+    db.promise().query(sql)
+        .then(([rows, fields]) => {
+            console.table(rows);
+        })
+        .catch(console.log)
+        .then(() => start());
 }
