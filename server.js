@@ -46,6 +46,7 @@ function start() {
                 break;
 
             case "View All Roles":
+                viewRole();
                 break;
 
             case "Add Role":
@@ -57,7 +58,7 @@ function start() {
             case "Add Department":
                 break;
 
-            case "Exit":
+            default:
                 db.end();
                 break;
         }
@@ -226,4 +227,25 @@ const updateRole = () => {
                         });
                 })
         });
+}
+
+const viewRole = () => {
+    const sql = `
+        SELECT 
+            role.id,
+            role.title,
+            department.name AS department,
+            role.salary
+        FROM role
+        JOIN department
+        ON role.department_id = department.id
+        ORDER BY role.id
+        `;
+
+    db.promise().query(sql)
+        .then(([rows, fields]) => {
+            console.table(rows);
+        })
+        .catch(console.log)
+        .then(() => start());
 }
