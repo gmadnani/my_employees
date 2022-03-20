@@ -38,6 +38,7 @@ function start() {
                 break;
 
             case "Add Employee":
+                addEmployees();
                 break;
 
             case "Update Employee Role":
@@ -89,3 +90,81 @@ const viewEmployees = () => {
         .catch(console.log)
         .then(() => start());
 }
+
+const addEmployees = () => {
+    const roles = {}
+
+    const sqlRoles = `
+    SELECT id, title
+    FROM role
+    `;
+
+    db.promise().query(sqlRoles)
+        .then(([rows, fields]) => {
+            for (i in rows) {
+                roles[rows[i].title] = rows[i].id;
+            }
+        })
+        .catch(console.log)
+        .then(() => {
+            const employees = {}
+
+            const sqlEmployee = `
+                SELECT id, CONCAT (employee.first_name, " ", employee.last_name) AS name
+                FROM employee
+                `;
+
+            db.promise().query(sqlEmployee)
+                .then(([rows, fields]) => {
+                    for (i in rows) {
+                        employees[rows[i].name] = rows[i].id;
+                    }
+                })
+                .catch(console.log)
+                .then(() => {
+                    const employeeQuestions = [
+                        {
+                            type: "input",
+                            message: "What is the employee's first name?",
+                            name: "first"
+                        },
+                        {
+                            type: "input",
+                            message: "What is the employee's last name?",
+                            name: "last"
+                        },
+                        {
+                            type: "list",
+                            message: "What is the employee's role?",
+                            name: "role",
+                            choices: Object.keys(roles)
+                        },
+                        {
+                            type: "list",
+                            message: "Who is the employee's manager?",
+                            name: "manager",
+                            choices: Object.keys(employees)
+                        }
+                    ]
+
+                    inquirer
+                        .prompt(employeeQuestions)
+                        .then((data) => {
+                            const roleId = roles[data.role];
+                            const managerId = employees[data.manager];
+                            const sql = `
+                            INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                            VALUES ('${data.first}', '${data.last}', '${roleId}', '${managerId}')
+                            `;
+
+                            db.promise().query(sql)
+                                .then(([rows, fields]) => {
+                                    console.log(`Added ${data.first} ${data.last} to the database.`);
+                                })
+                                .catch(console.log)
+                                .then(() => start());
+                        });
+                });
+        });
+}
+
