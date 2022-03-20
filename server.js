@@ -131,12 +131,26 @@ const addEmployees = () => {
                         {
                             type: "input",
                             message: "What is the employee's first name?",
-                            name: "first"
+                            name: "first",
+                            validate: (value) => {
+                                if (value) {
+                                    return true;
+                                } else {
+                                    return ("Please enter the first name.");
+                                }
+                            }
                         },
                         {
                             type: "input",
                             message: "What is the employee's last name?",
-                            name: "last"
+                            name: "last",
+                            validate: (value) => {
+                                if (value) {
+                                    return true;
+                                } else {
+                                    return ("Please enter the last name.");
+                                }
+                            }
                         },
                         {
                             type: "list",
@@ -273,12 +287,26 @@ const addRole = () => {
                 {
                     type: "input",
                     message: "What is the name of the role?",
-                    name: "title"
+                    name: "title",
+                    validate: (value) => {
+                        if (value) {
+                            return true;
+                        } else {
+                            return ("Please enter a new role.");
+                        }
+                    }
                 },
                 {
                     type: "number",
                     message: "What is the salary of the role?",
-                    name: "salary"
+                    name: "salary",
+                    validate: (value) => {
+                        if (value && !isNaN(value)) {
+                          return true;
+                        } else {
+                          return "Please enter a salary number.";
+                        }
+                      }
                 },
                 {
                     type: "list",
@@ -323,7 +351,14 @@ const addDepartment = () => {
         {
             type: "input",
             message: "What is the name of the department?",
-            name: "name"
+            name: "name",
+            validate: (value) => {
+                if (value) {
+                    return true;
+                } else {
+                    return ("Please enter a new department name.");
+                }
+            }
         }
     ]
 
