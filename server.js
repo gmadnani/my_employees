@@ -2,6 +2,7 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
+//connecting to the database
 const db = mysql.createConnection(
     {
         host: '127.0.0.1',
@@ -11,12 +12,16 @@ const db = mysql.createConnection(
         database: 'employee_db'
     });
 
+//start the function if connection is successful
 db.connect(err => {
     if (err) throw err;
     start();
 });
 
+//start function
 function start() {
+
+    //inquirer to generate questions
     inquirer.prompt({
         name: "option",
         type: "list",
@@ -32,13 +37,15 @@ function start() {
             "Quit"
         ]
     }).then((answer) => {
+
+        //based on the choice chosen go to the function
         switch (answer.option) {
             case "View All Employees":
                 viewEmployees();
                 break;
 
             case "Add Employee":
-                addEmployees();
+                addEmployee();
                 break;
 
             case "Update Employee Role":
@@ -68,7 +75,10 @@ function start() {
     });
 }
 
+//function the view all the employees in the databse
 const viewEmployees = () => {
+
+    //sql query
     const sql = `
         SELECT 
             employee.id, 
@@ -88,25 +98,35 @@ const viewEmployees = () => {
         ORDER BY employee.id
         `;
 
+    //pushing the query 
     db.promise().query(sql)
         .then(([rows, fields]) => {
+
+            //display the table
             console.table(rows);
         })
         .catch(console.log)
+
+        //go back to the start function
         .then(() => start());
 }
 
-const addEmployees = () => {
+//function to add an employee
+const addEmployee = () => {
     const roles = {}
 
+    //sql query
     const sqlRoles = `
     SELECT id, title
     FROM role
     `;
 
+    //pushing the sql query
     db.promise().query(sqlRoles)
         .then(([rows, fields]) => {
             for (i in rows) {
+
+                //getting the title from the ids
                 roles[rows[i].title] = rows[i].id;
             }
         })
@@ -114,24 +134,32 @@ const addEmployees = () => {
         .then(() => {
             const employees = {}
 
+            //sql query
             const sqlEmployee = `
                 SELECT id, CONCAT (employee.first_name, " ", employee.last_name) AS name
                 FROM employee
                 `;
 
+            //pushing the query
             db.promise().query(sqlEmployee)
                 .then(([rows, fields]) => {
                     for (i in rows) {
+
+                        //getting the employee names from their ids
                         employees[rows[i].name] = rows[i].id;
                     }
                 })
                 .catch(console.log)
                 .then(() => {
+
+                    //prompting inquirer
                     const employeeQuestions = [
                         {
                             type: "input",
                             message: "What is the employee's first name?",
                             name: "first",
+
+                            //validation
                             validate: (value) => {
                                 if (value) {
                                     return true;
@@ -144,6 +172,8 @@ const addEmployees = () => {
                             type: "input",
                             message: "What is the employee's last name?",
                             name: "last",
+
+                            //validation
                             validate: (value) => {
                                 if (value) {
                                     return true;
@@ -169,13 +199,18 @@ const addEmployees = () => {
                     inquirer
                         .prompt(employeeQuestions)
                         .then((data) => {
+
+                            //adding the data to the database using a sql query
                             const roleId = roles[data.role];
                             const managerId = employees[data.manager];
+
+                            //sql query
                             const sql = `
                             INSERT INTO employee (first_name, last_name, role_id, manager_id)
                             VALUES ('${data.first}', '${data.last}', '${roleId}', '${managerId}')
                             `;
 
+                            //pushing the query
                             db.promise().query(sql)
                                 .then(() => start());
                         });
@@ -186,13 +221,18 @@ const addEmployees = () => {
 const updateRole = () => {
     const employees = {}
 
+    //sql query
     const sqlEmployee = `
         SELECT id, CONCAT (employee.first_name, " ", employee.last_name) AS name
         FROM employee
         `;
+
+    //pushing the query
     db.promise().query(sqlEmployee)
         .then(([rows, fields]) => {
             for (i in rows) {
+
+                //getting the employee names from their ids
                 employees[rows[i].name] = rows[i].id;
             }
         })
@@ -200,13 +240,17 @@ const updateRole = () => {
         .then(() => {
             const roles = {}
 
+            //sql query
             const sqlRoles = `
                 SELECT id, title
                 FROM role
                 `;
 
+            //pushing the query
             db.promise().query(sqlRoles)
                 .then(([rows, fields]) => {
+
+                    //getting the roles names from their ids
                     for (i in rows) {
                         roles[rows[i].title] = rows[i].id;
                     }
@@ -233,12 +277,15 @@ const updateRole = () => {
                         .then((data) => {
                             const employeeId = employees[data.employee];
                             const roleId = roles[data.role];
+
+                            //sql query
                             const sql = `
                                 UPDATE employee
                                 SET role_id = ${roleId}
                                 WHERE id = ${employeeId}
                                 `;
-
+                            
+                            //pushing the query
                             db.promise().query(sql)
                                 .then(() => start());
                         });
@@ -247,6 +294,8 @@ const updateRole = () => {
 }
 
 const viewRoles = () => {
+    
+    //sql query
     const sql = `
         SELECT 
             role.id,
@@ -259,35 +308,47 @@ const viewRoles = () => {
         ORDER BY role.id
         `;
 
+    //pushing the query
     db.promise().query(sql)
         .then(([rows, fields]) => {
+
+            //displaying the table
             console.table(rows);
         })
         .catch(console.log)
         .then(() => start());
 }
 
+//function to add a new role
 const addRole = () => {
     const departments = {}
 
+    //sql query
     const sql = `
     SELECT id, name
     FROM department
     `;
 
+    //pushing the query
     db.promise().query(sql)
         .then(([rows, fields]) => {
             for (i in rows) {
+
+                //getting the department names from their ids
                 departments[rows[i].name] = rows[i].id;
             }
         })
         .catch(console.log)
         .then(() => {
+
+            //prompting inquirer
             const roleQuestions = [
                 {
                     type: "input",
                     message: "What is the name of the role?",
                     name: "title",
+
+                    //validation
                     validate: (value) => {
                         if (value) {
                             return true;
@@ -300,6 +361,8 @@ const addRole = () => {
                     type: "number",
                     message: "What is the salary of the role?",
                     name: "salary",
+
+                    //validation
                     validate: (value) => {
                         if (value && !isNaN(value)) {
                           return true;
@@ -319,12 +382,17 @@ const addRole = () => {
             inquirer
                 .prompt(roleQuestions)
                 .then((data) => {
+
+                    //adding the data to the database using a sql query
                     const departmentId = departments[data.department];
+
+                    //sql query
                     const sql = `
                     INSERT INTO role (title, salary, department_id)
                     VALUES ('${data.title}', '${data.salary}', '${departmentId}')
                     `;
 
+                    //pushing the query
                     db.promise().query(sql)
                         .then(() => start());
                 });
@@ -332,26 +400,36 @@ const addRole = () => {
 }
 
 const viewDepartments = () => {
+
+    //sql query
     const sql = `
         SELECT id, name
         FROM department
         ORDER BY id
         `;
 
+    //pushing the query
     db.promise().query(sql)
         .then(([rows, fields]) => {
+
+            //displaying the table
             console.table(rows);
         })
         .catch(console.log)
         .then(() => start());
 }
 
+//function to add a department
 const addDepartment = () => {
+
+    //prompting inquirer
     const departmentQuestion = [
         {
             type: "input",
             message: "What is the name of the department?",
             name: "name",
+
+            //validation
             validate: (value) => {
                 if (value) {
                     return true;
@@ -364,12 +442,17 @@ const addDepartment = () => {
 
     inquirer
         .prompt(departmentQuestion)
+        
+        //adding the data to the database using a sql query
         .then((data) => {
+            
+            //sql query
             const sql = `
             INSERT INTO department (name)
             VALUES (?)
             `;
-
+            
+            //pushing the query
             db.promise().query(sql, data.name)
                 .then(() => start());
         });
